@@ -1,0 +1,10 @@
+c File with edge cases
+c Multiple comment lines
+c should be ignored
+p wcnf 5 4
+c Comment between clauses
+0 1 2 3 0
+0 0
+c Another comment
+0 -4 5 0
+0 -1 -2 -3 -4 -5 0

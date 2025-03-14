@@ -1,0 +1,331 @@
+#!/usr/bin/env python3
+"""
+MAXSAT Lab Solution
+- Exercise 1: Clause Satisfaction Checker
+- Exercise 2: WDIMACS File Parser
+- Exercise 3: Evolutionary Algorithm for MAXSAT
+"""
+import sys
+import random
+import time
+
+def is_clause_satisfied(clause: str, assignment: str) -> int:
+    """
+    Determines if a given clause is satisfied by a variable assignment.
+    
+    Parameters:
+    - clause: Clause in the form of a string (e.g., "0 2 1 -3 -4 0")
+    - assignment: Bitstring representing variable assignments (e.g., "0011")
+    
+    Returns:
+    - 1 if the clause is satisfied, 0 otherwise.
+    """
+    literals = list(map(int, clause.split()))[1:-1]  # Ignore first & last 0
+
+    for literal in literals:
+        var_index = abs(literal) - 1  # Convert to zero-based index
+        
+        # Check if index is in range
+        if var_index >= len(assignment):
+            continue
+            
+        var_value = int(assignment[var_index])
+
+        # Check if clause is satisfied
+        if (literal > 0 and var_value == 1) or (literal < 0 and var_value == 0):
+            return 1  # Clause is satisfied
+    return 0  # Clause is not satisfied
+
+
+def count_satisfied_clauses(wdimacs_file: str, assignment: str) -> int:
+    """
+    Reads a WDIMACS file and counts the number of satisfied clauses for a given assignment.
+    
+    Parameters:
+    - wdimacs_file: Path to the WDIMACS file
+    - assignment: Bitstring representing variable assignments
+    
+    Returns:
+    - Number of satisfied clauses
+    """
+    satisfied_count = 0
+
+    with open(wdimacs_file, 'r') as file:
+        for line in file:
+            if line.startswith('c') or line.startswith('p'):
+                continue  # Ignore comments and problem definition
+            
+            # Evaluate the clause
+            if is_clause_satisfied(line.strip(), assignment):
+                satisfied_count += 1
+
+    return satisfied_count
+
+
+def get_num_vars_from_wdimacs(wdimacs_file):
+    """
+    Extract the number of variables from the WDIMACS file.
+    
+    Parameters:
+    - wdimacs_file: Path to the WDIMACS file
+    
+    Returns:
+    - Number of variables
+    """
+    with open(wdimacs_file, 'r') as file:
+        for line in file:
+            if line.startswith('p'):
+                parts = line.strip().split()
+                return int(parts[2])
+    return 0
+
+
+def initialize_population(population_size, num_vars):
+    """
+    Create random bitstrings for initial population.
+    
+    Parameters:
+    - population_size: Number of individuals in the population
+    - num_vars: Number of variables (length of bitstring)
+    
+    Returns:
+    - List of individuals (each a list of bits)
+    """
+    return [[random.randint(0, 1) for _ in range(num_vars)] for _ in range(population_size)]
+
+
+def selection(population, fitness_values, tournament_size=3):
+    """
+    Select individuals for breeding using tournament selection.
+    
+    Parameters:
+    - population: List of individuals
+    - fitness_values: List of fitness values for each individual
+    - tournament_size: Number of individuals in each tournament
+    
+    Returns:
+    - List of selected individuals
+    """
+    selected = []
+    
+    for _ in range(len(population)):
+        # Select random individuals for tournament
+        tournament_indices = random.sample(range(len(population)), min(tournament_size, len(population)))
+        tournament_fitness = [fitness_values[i] for i in tournament_indices]
+        
+        # Select the winner (highest fitness)
+        winner_idx = tournament_indices[tournament_fitness.index(max(tournament_fitness))]
+        selected.append(population[winner_idx])
+    
+    return selected
+
+
+def crossover(parent1, parent2):
+    """
+    Perform crossover between two parents (single-point).
+    
+    Parameters:
+    - parent1: First parent individual
+    - parent2: Second parent individual
+    
+    Returns:
+    - Tuple of two child individuals
+    """
+    if len(parent1) <= 1:
+        return parent1[:], parent2[:]
+        
+    crossover_point = random.randint(1, len(parent1) - 1)
+    child1 = parent1[:crossover_point] + parent2[crossover_point:]
+    child2 = parent2[:crossover_point] + parent1[crossover_point:]
+    return child1, child2
+
+
+def mutate(individual, mutation_rate):
+    """
+    Apply bit-flip mutation.
+    
+    Parameters:
+    - individual: Individual to mutate
+    - mutation_rate: Probability of flipping each bit
+    
+    Returns:
+    - Mutated individual
+    """
+    mutated = individual[:]
+    for i in range(len(mutated)):
+        if random.random() < mutation_rate:
+            mutated[i] = 1 - mutated[i]  # Flip bit
+    return mutated
+
+
+def evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, population_size=100, 
+                                     mutation_rate=0.01, crossover_rate=0.7, 
+                                     tournament_size=3, elitism=True):
+    """
+    Evolutionary algorithm for the MAXSAT problem.
+    
+    Parameters:
+    - wdimacs_file: Path to the WDIMACS file
+    - time_budget: Number of seconds to run the algorithm
+    - population_size: Size of the population
+    - mutation_rate: Probability of bit-flip mutation
+    - crossover_rate: Probability of crossover
+    - tournament_size: Size of tournament for selection
+    - elitism: Whether to preserve the best individual in each generation
+    
+    Returns:
+    - t: Total evaluations (generations * population size)
+    - nsat: Number of satisfied clauses in best solution
+    - xbest: Best solution found
+    """
+    # Parse WDIMACS file to get number of variables
+    num_vars = get_num_vars_from_wdimacs(wdimacs_file)
+    
+    # Initialize population randomly
+    population = initialize_population(population_size, num_vars)
+    
+    # Track statistics
+    evaluations = 0
+    best_fitness = 0
+    best_solution = None
+    
+    # Main evolutionary loop
+    start_time = time.time()
+    while time.time() - start_time < time_budget:
+        # Evaluate fitness of each individual
+        fitness_values = [
+            count_satisfied_clauses(wdimacs_file, ''.join(map(str, individual))) 
+            for individual in population
+        ]
+        evaluations += population_size
+        
+        # Track best solution
+        current_best_idx = fitness_values.index(max(fitness_values))
+        if fitness_values[current_best_idx] > best_fitness:
+            best_fitness = fitness_values[current_best_idx]
+            best_solution = population[current_best_idx]
+        
+        # Selection (tournament selection)
+        selected = selection(population, fitness_values, tournament_size)
+        
+        # Create new population through crossover and mutation
+        new_population = []
+        
+        # Elitism: keep the best individual
+        if elitism:
+            new_population.append(population[current_best_idx])
+        
+        # Fill the rest of the population
+        while len(new_population) < population_size:
+            # Select parents
+            parent1 = selected[random.randint(0, len(selected) - 1)]
+            parent2 = selected[random.randint(0, len(selected) - 1)]
+            
+            # Crossover
+            if random.random() < crossover_rate:
+                child1, child2 = crossover(parent1, parent2)
+            else:
+                child1, child2 = parent1[:], parent2[:]
+                
+            # Mutation
+            child1 = mutate(child1, mutation_rate)
+            child2 = mutate(child2, mutation_rate)
+            
+            new_population.append(child1)
+            if len(new_population) < population_size:
+                new_population.append(child2)
+        
+        population = new_population
+    
+    # Ensure we have a valid solution
+    if best_solution is None:
+        best_solution = [0] * num_vars
+    
+    # Return required output
+    xbest = ''.join(map(str, best_solution))
+    return evaluations, best_fitness, xbest
+
+
+# Main function to handle CLI interface
+if __name__ == "__main__":
+    try:
+        # Parse command line arguments
+        if len(sys.argv) < 2:
+            print("Usage: ./myprogram -question [1|2|3] ...")
+            sys.exit(1)
+            
+        args = sys.argv
+        
+        if "-question" not in args:
+            print("Missing -question argument")
+            sys.exit(1)
+            
+        question = args[args.index("-question") + 1]
+        
+        if question == "1":
+            # Handle Exercise 1 (Clause Checking)
+            if "-clause" not in args or "-assignment" not in args:
+                print("Missing required arguments for Exercise 1")
+                print("Usage: -question 1 -clause <clause> -assignment <bitstring>")
+                sys.exit(1)
+                
+            clause = args[args.index("-clause") + 1]
+            assignment = args[args.index("-assignment") + 1]
+            result = is_clause_satisfied(clause, assignment)
+            print(result)
+            
+        elif question == "2":
+            # Handle Exercise 2 (WDIMACS Clause Counting)
+            if "-udimacs" not in args or "-assignment" not in args:
+                print("Missing required arguments for Exercise 2")
+                print("Usage: -question 2 -udimacs <file> -assignment <bitstring>")
+                sys.exit(1)
+                
+            wdimacs_file = args[args.index("-udimacs") + 1]
+            assignment = args[args.index("-assignment") + 1]
+            result = count_satisfied_clauses(wdimacs_file, assignment)
+            print(result)
+            
+        elif question == "3":
+            # Handle Exercise 3 (Evolutionary Algorithm)
+            if "-wdimacs" not in args or "-time_budget" not in args or "-repetitions" not in args:
+                print("Missing required arguments for Exercise 3")
+                print("Usage: -question 3 -wdimacs <file> -time_budget <seconds> -repetitions <number>")
+                sys.exit(1)
+                
+            wdimacs_file = args[args.index("-wdimacs") + 1]
+            time_budget = float(args[args.index("-time_budget") + 1])
+            repetitions = int(args[args.index("-repetitions") + 1])
+            
+            # Optional parameters
+            population_size = 100
+            mutation_rate = 0.01
+            crossover_rate = 0.7
+            tournament_size = 3
+            elitism = True
+            
+            # Run the algorithm the specified number of times
+            for _ in range(repetitions):
+                t, nsat, xbest = evolutionary_algorithm_for_maxsat(
+                    wdimacs_file, 
+                    time_budget, 
+                    population_size, 
+                    mutation_rate, 
+                    crossover_rate, 
+                    tournament_size, 
+                    elitism
+                )
+                print(f"{t}\t{nsat}\t{xbest}")
+        else:
+            print(f"Unknown question number: {question}")
+            sys.exit(1)
+            
+    except (IndexError, ValueError) as e:
+        print(f"Error parsing arguments: {e}")
+        sys.exit(1)
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)

@@ -1,0 +1,12 @@
+c File with known satisfiability patterns
+p wcnf 5 5
+c Always satisfiable (tautology: x1 OR NOT x1)
+0 1 -1 0
+c Satisfiable only when x1=1
+0 1 0
+c Satisfiable only when x1=0
+0 -1 0
+c Satisfiable when any of x2, x3, x4 is 1
+0 2 3 4 0
+c Satisfiable when all of x3, x4, x5 are 0
+0 -3 -4 -5 0
