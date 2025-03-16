@@ -112,12 +112,9 @@ def count_satisfied_clauses_from_parsed(assignment: str, clauses: list) -> int:
                 break  # Stop after the first satisfying literal.
     return satisfied_count
 
-def evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, num_vars):
-    
-    if num_vars == 0:
-        raise ValueError("WDIMACS file is empty or does not contain a valid problem definition.")
-    
-    population_size = 2000
+def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses):
+
+    population_size = 200
     mutation_rate = 0.05
     crossover_rate = 0.85
     
@@ -128,6 +125,8 @@ def evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, num_vars):
     generations = 0
     best_fitness = 0
     best_solution = None
+    evolution_logs = []  # List to store log entries
+
     
     start_time = time.time()
     while time.time() - start_time < time_budget:
@@ -138,6 +137,18 @@ def evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, num_vars):
             for individual in population
         ]
         evaluations += population_size
+
+        current_best = max(fitness_values)
+        current_avg = sum(fitness_values) / len(fitness_values)
+
+        # Append current metrics to the log.
+        evolution_logs.append({
+            'generation': generations,
+            'evaluations': evaluations,
+            'best_fitness': current_best,
+            'avg_fitness': current_avg
+        })
+
         
         #track best solution
         current_best_idx = fitness_values.index(max(fitness_values))
@@ -166,10 +177,20 @@ def evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, num_vars):
         
         population = new_population
     
-
+    # Print evolution log after the algorithm finishes.
+    # print_evolution_log(evolution_logs)
     xbest = ''.join(map(str, best_solution))
     t = generations * evaluations
     return t, best_fitness, xbest
+
+def print_evolution_log(logs):
+    """
+    Prints the evolution log stored in a list of dictionaries.
+    Each log entry should have 'generation', 'evaluations', 'best_fitness', and 'avg_fitness' keys.
+    """
+    print("Generation\tEvaluations\tBest_Fitness\tAvg_Fitness")
+    for log in logs:
+        print(f"{log['generation']}\t\t{log['evaluations']}\t\t{log['best_fitness']}\t\t{log['avg_fitness']:.2f}")
 
 
 def initialize_population(population_size, num_vars):
@@ -262,7 +283,7 @@ if __name__ == "__main__":
                 
                 num_vars, num_clauses, clauses = parse_wdimacs_file(wdimacs_file)
                 for _ in range(repetitions):
-                    t, nsat, xbest = evolutionary_algorithm_for_maxsat(wdimacs_file, time_budget, num_vars)
+                    t, nsat, xbest = evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses)
                     print(f"{t}\t{nsat}\t{xbest}")
             else:
                 print("Error: Missing -wdimacs, -time_budget, or -repetitions argument for question 3.")
