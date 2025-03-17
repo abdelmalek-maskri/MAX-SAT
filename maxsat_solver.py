@@ -31,21 +31,26 @@ def is_clause_satisfied(clause: str, assignment: str) -> int:
 #Exo2
 #reads a WDIMACS file and counts the number of satisfied clauses for a given assignment.
 def count_satisfied_clauses(wdimacs_file: str, assignment: str) -> int:
-
+    total_clauses = 0
     satisfied_count = 0
+    
     with open(wdimacs_file, 'r') as file:
         for line in file:
             if line.startswith('c') or line.startswith('p'):
-                continue  #ignore comments and problem definition
+                continue  # ignore comments and problem definition
             
-            #evaluate the clause 
+            total_clauses += 1
+            # Evaluate whether the clause is satisfied by the assignment
             if is_clause_satisfied(line.strip(), assignment):
                 satisfied_count += 1
+    
+    # Return the negative number of unsatisfied clauses.
+    # For example, if there are 80 total clauses and 30 are satisfied,
+    # then 30 - 80 = -50 will be returned.
+    return satisfied_count - total_clauses
 
-    return satisfied_count
 
 #Exo3
-
 def parse_wdimacs_file(wdimacs_file: str):
     """
     Parses a WDIMACS file and returns:
