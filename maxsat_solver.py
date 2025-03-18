@@ -120,7 +120,7 @@ def count_satisfied_clauses_from_parsed(assignment: str, clauses: list) -> int:
 def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses):
 
     population_size = 200
-    mutation_rate = 0.05
+    mutation_rate = 0.1
     crossover_rate = 0.85
     
     #Initialize population randomly
