@@ -44,10 +44,7 @@ def count_satisfied_clauses(wdimacs_file: str, assignment: str) -> int:
             if is_clause_satisfied(line.strip(), assignment):
                 satisfied_count += 1
     
-    # Return the negative number of unsatisfied clauses.
-    # For example, if there are 80 total clauses and 30 are satisfied,
-    # then 30 - 80 = -50 will be returned.
-    return satisfied_count - total_clauses
+    return satisfied_count
 
 
 #Exo3
@@ -172,7 +169,7 @@ def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses):
                 child1, child2 = crossover(parent1, parent2)
             else:
                 child1, child2 = parent1[:], parent2[:]
-                
+
             child1 = mutate(child1, mutation_rate)
             child2 = mutate(child2, mutation_rate)
             
@@ -218,6 +215,17 @@ def selection(population, fitness_values):
     
     return selected
 
+def rank_selection(population, fitness_values):
+    sorted_population = [x for _, x in sorted(zip(fitness_values, population), reverse=True)]
+    probabilities = [(i+1) / sum(range(1, len(sorted_population) + 1)) for i in range(len(sorted_population))]
+
+    selected = []
+    for _ in range(len(population)):
+        selected.append(random.choices(sorted_population, probabilities)[0])
+
+    return selected
+
+
 def crossover(parent1, parent2):
     #Perform crossover between two parents
     if len(parent1) <= 1:
@@ -228,11 +236,30 @@ def crossover(parent1, parent2):
     child2 = parent2[:crossover_point] + parent1[crossover_point:]
     return child1, child2
 
+def uniform_crossover(parent1, parent2, crossover_rate=0.85):
+    if random.random() > crossover_rate:
+        return parent1[:], parent2[:]
+    
+    child1, child2 = parent1[:], parent2[:]
+    for i in range(len(parent1)):
+        if random.random() < 0.5:
+            child1[i], child2[i] = child2[i], child1[i]  # Swap genes randomly
+    return child1, child2
+
+
 def mutate(individual, mutation_rate):
 
     mutated = individual[:]
     for i in range(len(mutated)):
         if random.random() < mutation_rate:
+            mutated[i] = 1 - mutated[i]  
+    return mutated
+
+def adaptive_mutate(individual, mutation_rate, generation, max_generations):
+    adaptive_rate = mutation_rate * (1 - (generation / max_generations))  # Decrease over time
+    mutated = individual[:]
+    for i in range(len(mutated)):
+        if random.random() < adaptive_rate:
             mutated[i] = 1 - mutated[i]  
     return mutated
 
