@@ -1,11 +1,15 @@
-# Use the base image provided for the lab
+# Use the base image 
+
 FROM pklehre/ec2025-lab2
 
-# Add your Python script to the Docker image
-ADD maxsat_solver.py /bin
+# Add the Python script to the Docker image
 
-# Make the script executable
+ADD axm1962.py /bin
 
+# to make the script executable:
+# RUN chmod +x /bin/axm1962.py
 
 # Set the command to run the test script with your username and submission
-CMD ["-username", "axm1962", "-submission", "python3 /bin/maxsat_solver.py"]
+
+
+CMD ["-username", "axm1962", "-submission", "python3 /bin/axm1962.py"]
