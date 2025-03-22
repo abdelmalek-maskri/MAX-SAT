@@ -2,9 +2,11 @@
 import sys
 import random
 import time
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+#Uncomment this if you want to run the experiment 
+
+# import pandas as pd
+# import seaborn as sns
+# import matplotlib.pyplot as plt
 
 #Exo1
 #determines if a given clause is satisfied by a variable assignment.
@@ -106,7 +108,45 @@ def count_satisfied_clauses_from_parsed(assignment: str, clauses: list) -> int:
                 break  #stop after the first satisfying literal.
     return satisfied_count
 
-def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population_size, mutation_rate, crossover_rate):
+
+def initialize_population(population_size, num_vars):
+    #create random bitstrings for initial population
+    return [[random.randint(0, 1) for _ in range(num_vars)] for _ in range(population_size)]
+
+def tournamen_selection(population, fitness_values, tournament_size):
+    #select individuals for breeding (tournament selection example)
+    selected = []
+    for _ in range(len(population)):
+        #select random individuals for tournament
+        tournament_indices = random.sample(range(len(population)), tournament_size)
+        tournament_fitness = [fitness_values[i] for i in tournament_indices]
+        
+        #select the winner (highest fitness)
+        winner_idx = tournament_indices[tournament_fitness.index(max(tournament_fitness))]
+        selected.append(population[winner_idx])
+    
+    return selected
+
+def crossover(parent1, parent2):
+    #perform crossover between two parents
+    if len(parent1) <= 1:
+        return parent1[:], parent2[:]
+        
+    crossover_point = random.randint(1, len(parent1) - 1)
+    child1 = parent1[:crossover_point] + parent2[crossover_point:]
+    child2 = parent2[:crossover_point] + parent1[crossover_point:]
+    return child1, child2
+
+
+def mutate(individual, mutation_rate):
+
+    mutated = individual[:]
+    for i in range(len(mutated)):
+        if random.random() < mutation_rate:
+            mutated[i] = 1 - mutated[i]  
+    return mutated
+
+def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population_size, mutation_rate, crossover_rate, tournament_size):
     
     #initialize population randomly
     population = initialize_population(population_size, num_vars)
@@ -146,7 +186,7 @@ def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population
             best_fitness = fitness_values[current_best_idx]
             best_solution = population[current_best_idx]
         
-        selected = selection(population, fitness_values)
+        selected = tournamen_selection(population, fitness_values, tournament_size)
         
         new_population = []
         while len(new_population) < population_size:
@@ -191,80 +231,40 @@ def print_evolution_log(logs):
         print(f"{log['generation']}\t\t{log['evaluations']}\t\t{log['best_fitness']}\t\t{log['avg_fitness']:.2f}")
 
 
-def initialize_population(population_size, num_vars):
-    #create random bitstrings for initial population
-    return [[random.randint(0, 1) for _ in range(num_vars)] for _ in range(population_size)]
+# def rank_selection(population, fitness_values):
+#     sorted_population = [x for _, x in sorted(zip(fitness_values, population), reverse=True)]
+#     probabilities = [(i+1) / sum(range(1, len(sorted_population) + 1)) for i in range(len(sorted_population))]
 
-def selection(population, fitness_values):
-    #select individuals for breeding (tournament selection example)
-    selected = []
-    tournament_size = 3
+#     selected = []
+#     for _ in range(len(population)):
+#         selected.append(random.choices(sorted_population, probabilities)[0])
+
+#     return selected
+
+# def uniform_crossover(parent1, parent2, crossover_rate=0.85):
+#     if random.random() > crossover_rate:
+#         return parent1[:], parent2[:]
     
-    for _ in range(len(population)):
-        #select random individuals for tournament
-        tournament_indices = random.sample(range(len(population)), tournament_size)
-        tournament_fitness = [fitness_values[i] for i in tournament_indices]
-        
-        #select the winner (highest fitness)
-        winner_idx = tournament_indices[tournament_fitness.index(max(tournament_fitness))]
-        selected.append(population[winner_idx])
-    
-    return selected
+#     child1, child2 = parent1[:], parent2[:]
+#     for i in range(len(parent1)):
+#         if random.random() < 0.5:
+#             child1[i], child2[i] = child2[i], child1[i]  #swap genes randomly
+#     return child1, child2
 
-def rank_selection(population, fitness_values):
-    sorted_population = [x for _, x in sorted(zip(fitness_values, population), reverse=True)]
-    probabilities = [(i+1) / sum(range(1, len(sorted_population) + 1)) for i in range(len(sorted_population))]
+# def adaptive_crossover(parent1, parent2, initial_crossover_rate, generation, max_generations):
+#     adaptive_rate = initial_crossover_rate * (1 - generation / max_generations)
+#     if random.random() < adaptive_rate:
+#         return crossover(parent1, parent2)
+#     else:
+#         return parent1[:], parent2[:]
 
-    selected = []
-    for _ in range(len(population)):
-        selected.append(random.choices(sorted_population, probabilities)[0])
-
-    return selected
-
-
-def crossover(parent1, parent2):
-    #perform crossover between two parents
-    if len(parent1) <= 1:
-        return parent1[:], parent2[:]
-        
-    crossover_point = random.randint(1, len(parent1) - 1)
-    child1 = parent1[:crossover_point] + parent2[crossover_point:]
-    child2 = parent2[:crossover_point] + parent1[crossover_point:]
-    return child1, child2
-
-def uniform_crossover(parent1, parent2, crossover_rate=0.85):
-    if random.random() > crossover_rate:
-        return parent1[:], parent2[:]
-    
-    child1, child2 = parent1[:], parent2[:]
-    for i in range(len(parent1)):
-        if random.random() < 0.5:
-            child1[i], child2[i] = child2[i], child1[i]  #swap genes randomly
-    return child1, child2
-
-def adaptive_crossover(parent1, parent2, initial_crossover_rate, generation, max_generations):
-    adaptive_rate = initial_crossover_rate * (1 - generation / max_generations)
-    if random.random() < adaptive_rate:
-        return crossover(parent1, parent2)
-    else:
-        return parent1[:], parent2[:]
-
-
-def mutate(individual, mutation_rate):
-
-    mutated = individual[:]
-    for i in range(len(mutated)):
-        if random.random() < mutation_rate:
-            mutated[i] = 1 - mutated[i]  
-    return mutated
-
-def adaptive_mutate(individual, mutation_rate, generation, max_generations):
-    adaptive_rate = mutation_rate * (1 - (generation / max_generations))  #decrease over time
-    mutated = individual[:]
-    for i in range(len(mutated)):
-        if random.random() < adaptive_rate:
-            mutated[i] = 1 - mutated[i]  
-    return mutated
+# def adaptive_mutate(individual, mutation_rate, generation, max_generations):
+#     adaptive_rate = mutation_rate * (1 - (generation / max_generations))  #decrease over time
+#     mutated = individual[:]
+#     for i in range(len(mutated)):
+#         if random.random() < adaptive_rate:
+#             mutated[i] = 1 - mutated[i]  
+#     return mutated
 
 
 # ------------------------------
@@ -286,7 +286,7 @@ def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
             for crossover_rate in crossover_rates:
                 print(f"crossover rate:  {crossover_rate}")
                 for _ in range(repetitions):
-                    t, nsat, _ = evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, pop_size, mutation_rate, crossover_rate)
+                    t, nsat, _ = evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, pop_size, mutation_rate, crossover_rate, tournament_size)
                     results.append({
                         "Population Size": pop_size,
                         "Mutation Rate": mutation_rate,
@@ -306,7 +306,7 @@ def generate_boxplots(df):
     """Generates boxplots for parameter analysis."""
     
     # df = pd.read_csv(csv_file)
-    
+
     plt.figure(figsize=(12, 6))
     sns.boxplot(x="Population Size", y="Satisfied Clauses", data=df)
     plt.title("Impact of Population Size on Solution Quality")
@@ -373,11 +373,12 @@ if __name__ == "__main__":
                     sys.exit(1)
                 
                 num_vars, num_clauses, clauses = parse_wdimacs_file(wdimacs_file)
-                population_size = 50
+                population_size = 20
                 mutation_rate = 0.05
                 crossover_rate = 0.85
+                tournament_size = 5
                 for _ in range(repetitions):
-                    t, nsat, xbest = evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population_size, mutation_rate, crossover_rate)
+                    t, nsat, xbest = evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population_size, mutation_rate, crossover_rate, tournament_size)
                     print(f"{t}\t{nsat}\t{xbest}")
                 
                 #Uncomment this to run the experiments 
