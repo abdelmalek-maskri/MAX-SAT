@@ -304,6 +304,9 @@ def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
 
 def generate_boxplots(df):
     """Generates boxplots for parameter analysis."""
+    
+    # df = pd.read_csv(csv_file)
+    
     plt.figure(figsize=(12, 6))
     sns.boxplot(x="Population Size", y="Satisfied Clauses", data=df)
     plt.title("Impact of Population Size on Solution Quality")
