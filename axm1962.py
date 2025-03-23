@@ -178,7 +178,6 @@ def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population
             'best_fitness': current_best,
             'avg_fitness': current_avg
         })
-
         
         #track best solution
         current_best_idx = fitness_values.index(max(fitness_values))
@@ -222,10 +221,9 @@ def evolutionary_algorithm_for_maxsat(time_budget, num_vars, clauses, population
     return t, best_fitness, xbest
 
 def print_evolution_log(logs):
-    """
-    Prints the evolution log stored in a list of dictionaries.
-    Each log entry should have 'generation', 'evaluations', 'best_fitness', and 'avg_fitness' keys.
-    """
+    #prints the evolution log stored in a list of dictionaries.
+    #each log entry should have 'generation', 'evaluations', 'best_fitness', and 'avg_fitness' keys.
+
     print("Generation\tEvaluations\tBest_Fitness\tAvg_Fitness")
     for log in logs:
         print(f"{log['generation']}\t\t{log['evaluations']}\t\t{log['best_fitness']}\t\t{log['avg_fitness']:.2f}")
@@ -272,7 +270,7 @@ def print_evolution_log(logs):
 # ------------------------------
 
 def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
-    """Runs experiments by varying population size, mutation rate, and crossover rate."""
+    #runs experiments by varying population size, mutation rate, and crossover rate
     results = []
 
     pop_sizes = [50, 100, 200]
@@ -303,7 +301,7 @@ def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
 # ------------------------------
 
 def generate_boxplots(df):
-    """Generates boxplots for parameter analysis."""
+    #generates boxplots for parameter analysis
     
     # df = pd.read_csv(csv_file)
 
