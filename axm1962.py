@@ -21,7 +21,7 @@ def is_clause_satisfied(clause: str, assignment: str) -> int:
     #convert the remaining parts to integers
     literals = [int(literal) for literal in literals]
 
-    num_vars = len(assignment)  # Number of variables
+    num_vars = len(assignment)  #Number of variables
 
     for literal in literals:
         var_index = abs(literal) - 1  #convert to zero-based index
@@ -42,10 +42,10 @@ def count_satisfied_clauses(wdimacs_file: str, assignment: str) -> int:
     with open(wdimacs_file, 'r') as file:
         for line in file:
             if line.startswith('c') or line.startswith('p'):
-                continue  # ignore comments and problem definition
+                continue  #ignore comments and problem definition
             
             total_clauses += 1
-            # Evaluate whether the clause is satisfied by the assignment
+            #evaluate whether the clause is satisfied by the assignment
             if is_clause_satisfied(line.strip(), assignment):
                 satisfied_count += 1
     
@@ -273,9 +273,12 @@ def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
     #runs experiments by varying population size, mutation rate, and crossover rate
     results = []
 
-    pop_sizes = [50, 100, 200]
-    mutation_rates = [0.01, 0.05, 0.1]
-    crossover_rates = [0.6, 0.85, 1.0]
+    pop_sizes = [20, 50, 100, 200]
+    # pop_sizes = [30, 20]
+    # mutation_rates = [0.01, 0.05, 0.1]
+    mutation_rates = [0.05]
+    # crossover_rates = [0.6, 0.85, 1.0]
+    crossover_rates = [0.85]
 
     for pop_size in pop_sizes:
         print(f"pop size: {pop_size}")
@@ -293,7 +296,8 @@ def run_experiments(clauses, num_vars, time_budget=10, repetitions=100):
                     })
 
     df = pd.DataFrame(results)
-    df.to_csv("experiment_results.csv", index=False)  # Save results
+    df.to_csv("experiment_results_normalized-f2000.wcnf.csv", index=False)  # Save results
+    # df.to_csv("pop.csv", index=False)  # Save results
     return df
 
 # ------------------------------
@@ -385,6 +389,8 @@ if __name__ == "__main__":
                 # df_results = run_experiments(clauses, num_vars)
 
                 # print("Generating boxplots...")
+                
+                # generate_boxplots("experiment_results_wb-debug.dimacs.wcnf(large).csv")
                 # generate_boxplots(df_results)
 
                 # print("Results saved in 'experiment_results.csv'.")
