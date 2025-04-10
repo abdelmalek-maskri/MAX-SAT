@@ -1,66 +1,93 @@
-# MAXSAT Lab - Testing and Submission Guide
+# MAXSAT Solver using Evolutionary Algorithm
 
-This guide will help you test your implementation of the MAXSAT problem and prepare it for submission.
+This project provides a Python-based solver for the MAXSAT problem using a basic **evolutionary algorithm**. It is designed to work with **weighted DIMACS (WDIMACS)** files and allows clause satisfaction analysis, fitness evaluation, and evolutionary search for optimal or near-optimal solutions.
 
-## Files in this Project
+## 📁 Project Structure
 
-- `maxsat_solver.py` - Contains implementations for Exercises 1 and 2
-- `exo3.py` - Contains the evolutionary algorithm implementation for Exercise 3
-- `test_script.py` - A simple script to test your implementation
-- `Dockerfile` - For creating a Docker container to test and submit your solution
+```
+.
+├── maxsat_solver.py     # Main solver and experiment runner
+├── Dockerfile           # Optional Docker setup
+├── README.md            # This file
+└── test_files/          # Folder for input .wdimacs test files
+```
 
-## Testing Your Implementation Locally
+## ✅ Features
 
-1. Make sure you have Python installed on your system.
+- Parses `.wdimacs` files and evaluates clause satisfaction.
+- Supports command-line operations for:
+  - Clause checking
+  - Clause counting
+  - Evolutionary optimization
+- Optional experiment runner with parameter sweep
+- Optional data visualization with Seaborn (commented in by default)
 
-2. Run the test script to verify your implementation:
-   ```
-   python test_script.py
-   ```
+---
 
-3. Check the output to ensure that all tests pass.
+## 🔧 Setup
 
-## Preparing for Docker Submission
+### Dependencies
+Install these Python libraries if running experiments or plots:
+```bash
+pip install pandas seaborn matplotlib
+```
 
-1. Make sure you have Docker installed on your system.
+### Make executable (optional)
+```bash
+chmod +x maxsat_solver.py
+```
 
-2. Update the Dockerfile with your username (replace `YOUR_USERNAME` with your actual username).
+---
 
-3. Create a directory structure as specified in the lab document:
-   ```
-   mkdir -p ec2025cw2-YOUR_USERNAME
-   cp maxsat_solver.py exo3.py Dockerfile ec2025cw2-YOUR_USERNAME/
-   ```
+## 🚀 Usage
 
-4. Create or add your PDF file for Exercises 4 and 5 to the directory:
-   ```
-   cp YOUR_PDF_FILE.pdf ec2025cw2-YOUR_USERNAME/exercise.pdf
-   ```
+### Question 1: Check if a single clause is satisfied
 
-## Building and Testing the Docker Image
+```bash
+python3 maxsat_solver.py -question 1 -clause "w 1 -3 0" -assignment 101
+```
 
-1. Build the Docker image:
-   ```
-   docker build ec2025cw2-YOUR_USERNAME -t ec2025cw2-YOUR_USERNAME
-   ```
+### Question 2: Count satisfied clauses from a `.wdimacs` file
 
-2. Test the Docker image:
-   ```
-   docker run --platform=linux/amd64 ec2025cw2-YOUR_USERNAME
-   ```
+```bash
+python3 maxsat_solver.py -question 2 -wdimacs test_files/example.wdimacs -assignment 10101
+```
 
-## Creating the Submission Zip File
+### Question 3: Run the evolutionary MAXSAT solver
 
-1. Create a zip file of the directory:
-   ```
-   zip -r ec2025cw2-YOUR_USERNAME.zip ec2025cw2-YOUR_USERNAME
-   ```
+```bash
+python3 maxsat_solver.py -question 3 -wdimacs test_files/example.wdimacs -time_budget 10 -repetitions 3
+```
 
-2. Submit the zip file on Canvas.
+This will output:
+```
+<evaluations>   <satisfied_clauses>   <best_assignment>
+```
 
-## Troubleshooting
+---
 
-- If you encounter issues with the Docker build or run commands, check the lab document for additional guidance.
-- Make sure all file paths are correct and that you've replaced `YOUR_USERNAME` with your actual username.
-- Verify that your code returns the expected outputs for the test cases.
-- If your code requires additional Python packages, add them to the Dockerfile using `RUN apt-get -y install <package-name>`.
+## ⚙️ Evolutionary Algorithm Details
+
+- **Selection**: Tournament
+- **Crossover**: Single-point (default) – adaptive and uniform versions available
+- **Mutation**: Bit-flip mutation
+- **Fitness Function**: Number of clauses satisfied
+
+You can enable additional selection and variation strategies by uncommenting the corresponding sections in the script.
+
+---
+
+## 📊 Experiments & Plots (Optional)
+
+Uncomment the following in `maxsat_solver.py` to run large-scale experiments:
+```python
+# df_results = run_experiments(clauses, num_vars)
+# generate_boxplots(df_results)
+```
+
+This will:
+- Run multiple configurations of the algorithm
+- Save results as a CSV
+- Generate boxplots to visualize performance of each parameter
+
+
