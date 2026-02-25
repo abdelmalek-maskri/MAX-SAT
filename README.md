@@ -2,7 +2,7 @@
 
 This project provides a Python-based solver for the MAXSAT problem using a basic **evolutionary algorithm**. It is designed to work with **weighted DIMACS (WDIMACS)** files and allows clause satisfaction analysis, fitness evaluation, and evolutionary search for optimal or near-optimal solutions.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
@@ -24,7 +24,7 @@ This project provides a Python-based solver for the MAXSAT problem using a basic
 
 ---
 
-## 🔧 Setup
+## Setup
 
 ### Dependencies
 Install these Python libraries if running experiments or plots:
