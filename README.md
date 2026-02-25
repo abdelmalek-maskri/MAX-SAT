@@ -12,7 +12,7 @@ This project provides a Python-based solver for the MAXSAT problem using a basic
 └── test_files/          # Folder for input .wdimacs test files
 ```
 
-## ✅ Features
+## Features
 
 - Parses `.wdimacs` files and evaluates clause satisfaction.
 - Supports command-line operations for:
@@ -39,7 +39,7 @@ chmod +x maxsat_solver.py
 
 ---
 
-## 🚀 Usage
+## Usage
 
 ### Question 1: Check if a single clause is satisfied
 
@@ -66,7 +66,7 @@ This will output:
 
 ---
 
-## ⚙️ Evolutionary Algorithm Details
+## Evolutionary Algorithm Details
 
 - **Selection**: Tournament
 - **Crossover**: Single-point (default) – adaptive and uniform versions available
@@ -77,7 +77,7 @@ You can enable additional selection and variation strategies by uncommenting the
 
 ---
 
-## 📊 Experiments & Plots (Optional)
+## Experiments & Plots (Optional)
 
 Uncomment the following in `maxsat_solver.py` to run large-scale experiments:
 ```python
