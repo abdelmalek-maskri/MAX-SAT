@@ -73,7 +73,7 @@ This will output:
 - **Mutation**: Bit-flip mutation
 - **Fitness Function**: Number of clauses satisfied
 
-You can enable additional selection and variation strategies by uncommenting the corresponding sections in the script.
+you can enable additional selection and variation strategies by uncommenting the corresponding sections in the script.
 
 ---
 
