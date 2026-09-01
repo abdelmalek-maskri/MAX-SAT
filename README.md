@@ -69,7 +69,7 @@ This will output:
 ## Evolutionary Algorithm Details
 
 - **Selection**: Tournament
-- **Crossover**: Single-point (default) – adaptive and uniform versions available
+- **Crossover**: Single-point (default) adaptive and uniform versions available
 - **Mutation**: Bit-flip mutation
 - **Fitness Function**: Number of clauses satisfied
 
